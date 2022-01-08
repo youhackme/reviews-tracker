@@ -13,9 +13,9 @@ class FetchReviews extends Command
      * @var string
      */
     protected $signature = 'fetch:reviews
-                            {id=}
-                            {store=}';
-
+                            {--id=}
+                            {--store=}';
+//id for testing:1205990992, 1600880394, 1586321858
 
     /**
      * The console command description.
@@ -42,8 +42,19 @@ class FetchReviews extends Command
     public function handle()
     {
         $this->info('Fetching Reviews');
-        $store = resolve(AppleStore::class);
-        $result = $store->reviews();
-        dd($result);
+
+        $store = resolve(AppleStore::class, [
+            'id' => (int)$this->option('id'),
+        ]);
+
+        $reviews = $store->reviews();
+        if ($reviews) {
+            $reviews->each(function ($review, $key) {
+                $position = $key + 1;
+                $this->info($position . '. ' . $review['title']);
+            });
+        } else {
+            $this->error('No Reviews Found');
+        }
     }
 }

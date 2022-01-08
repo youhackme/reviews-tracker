@@ -12,29 +12,35 @@ use App\StoreInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use phpDocumentor\Reflection\Types\Integer;
 
 class AppleStore implements StoreInterface
 {
 
     public Client $client;
+    public int $id;
 
-    public function __construct(Client $client)
+    public function __construct(Client $client, int $id)
     {
         $this->client = $client;
+        $this->id = $id;
     }
 
-    public function reviews()
+    public function reviews(): bool|Collection
     {
 
-        $url = 'https://itunes.apple.com/us/rss/customerreviews/page=1/id=1205990992/sortby=mostrecent/json';
+        $url = 'https://itunes.apple.com/us/rss/customerreviews/page=1/id=' . $this->id . '/sortby=mostrecent/json';
 
         try {
             $response = $this->client->get($url);
             $json = json_decode($response->getBody()->getContents());
+
+            if (!isset($json->feed->entry)) {
+                return false;
+            }
             $entries = $json->feed->entry;
 
-            // if (!empty($entries)) {
-            $reviews = collect($entries)->map(function ($review) {
+            return collect($entries)->map(function ($review) {
 
                 return [
                     'author'      => $review->author->name->label,
@@ -50,11 +56,10 @@ class AppleStore implements StoreInterface
 
             });
 
-            dd($reviews);
 
-
-        } catch (GuzzleException $e) {
-            dd($e);
+        } catch (GuzzleException $error) {
+            return false;
+            return $error->getMessage();
         }
     }
 

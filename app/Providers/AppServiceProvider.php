@@ -25,8 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->bind(AppleStore::class, function ($app) {
-            return new AppleStore($app->make(Client::class));
+        $this->app->bind(AppleStore::class, function ($app, $params) {
+            return new AppleStore($app->make(Client::class), $params['id']);
         });
 
 
