@@ -3,22 +3,26 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\AppStores\AppleStore;
 
-class FetchAppleStoreReviews extends Command
+class FetchReviews extends Command
 {
     /**
-     * The name and signature of the console command.
+     * Fetch Reviews, Ratings, App details
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'fetch:reviews
+                            {id=}
+                            {store=}';
+
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Fetch Reviews for a specific App';
 
     /**
      * Create a new command instance.
@@ -37,6 +41,9 @@ class FetchAppleStoreReviews extends Command
      */
     public function handle()
     {
-        return 0;
+        $this->info('Fetching Reviews');
+        $store = resolve(AppleStore::class);
+        $result = $store->reviews();
+        dd($result);
     }
 }
