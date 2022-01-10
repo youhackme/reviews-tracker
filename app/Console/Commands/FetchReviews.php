@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\AppStores\GooglePlay;
 use Illuminate\Console\Command;
 use App\AppStores\AppleStore;
 
@@ -43,9 +44,13 @@ class FetchReviews extends Command
     {
         $this->info('Fetching Reviews');
 
-        $store = resolve(AppleStore::class, [
+        $provider = $this->option('store');
+        $provider === 'apple' ? AppleStore::class : GooglePlay::class;
+
+        $store = resolve($provider, [
             'id' => (int)$this->option('id'),
         ]);
+
 
         $reviews = $store->reviews();
         if ($reviews) {
