@@ -12,7 +12,8 @@ use App\StoreInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
-use phpDocumentor\Reflection\Types\Integer;
+use Symfony\Component\DomCrawler\Crawler;
+
 
 class AppleStore implements StoreInterface
 {
@@ -66,12 +67,45 @@ class AppleStore implements StoreInterface
 
     public function ratings()
     {
-        // TODO: Implement ratings() method.
+        $url = 'https://itunes.apple.com/us/customer-reviews/id' . $this->id . '?displayable-kind=11';
+
+        try {
+            $response = $this->client->get($url, [
+                'headers' => [
+                    'X-Apple-Store-Front' => '143441,12',
+                ],
+            ]);
+
+            $html = $response->getBody()->getContents();
+
+            $crawler = new Crawler($html);
+            $stars   = $crawler->filter('.ratings-histogram > .vote')
+                ->extract(['aria-label']);
+
+            if (!empty($stars)) {
+                return collect($stars)->map(function ($item) {
+                    $data      = explode(',', $item);
+                    $star      = trim(str_replace(['stars', 'star'], '', $data[0]));
+                    $starValue = (int)trim(str_replace('ratings', '', trim($data[1])));
+
+                    return [
+                        $star => $starValue,
+                    ];
+                });
+            }
+
+
+        }
+        catch (GuzzleException $error) {
+            return false;
+            return $error->getMessage();
+        }
+
     }
 
     public function search()
     {
-        $url = 'https://itunes.apple.com/lookup?id=1205990992&country=us&entity=software';
+        $url = 'https://itunes.apple.com/lookup?id=' . $this->id . '&country=us&entity=software';
 
         try {
             $response = $this->client->get($url);
