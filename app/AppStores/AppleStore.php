@@ -23,7 +23,7 @@ class AppleStore implements StoreInterface
     public function __construct(Client $client, int $id)
     {
         $this->client = $client;
-        $this->id = $id;
+        $this->id     = $id;
     }
 
     public function reviews(): bool|Collection
@@ -33,7 +33,7 @@ class AppleStore implements StoreInterface
 
         try {
             $response = $this->client->get($url);
-            $json = json_decode($response->getBody()->getContents());
+            $json     = json_decode($response->getBody()->getContents());
 
             if (!isset($json->feed->entry)) {
                 return false;
@@ -57,7 +57,8 @@ class AppleStore implements StoreInterface
             });
 
 
-        } catch (GuzzleException $error) {
+        }
+        catch (GuzzleException $error) {
             return false;
             return $error->getMessage();
         }
@@ -70,6 +71,55 @@ class AppleStore implements StoreInterface
 
     public function search()
     {
-        // TODO: Implement search() method.
+        $url = 'https://itunes.apple.com/lookup?id=1205990992&country=us&entity=software';
+
+        try {
+            $response = $this->client->get($url);
+            $json     = json_decode($response->getBody()->getContents());
+
+            if ($json->resultCount === 0) {
+                return false;
+            }
+
+            return collect($json->results)->map(function ($app) {
+
+                return [
+                    'id'                            => $app->trackId,
+                    'name'                          => $app->trackName,
+                    'screenshots'                   => $app->screenshotUrls,
+                    'required_os'                   => $app->minimumOsVersion,
+                    'ipad_screenshots'              => $app->ipadScreenshotUrls,
+                    'icon'                          => $app->artworkUrl512,
+                    'developer_url'                 => $app->artistViewUrl,
+                    'languages'                     => $app->languageCodesISO2A,
+                    'size'                          => $app->fileSizeBytes,
+                    'price'                         => $app->price,
+                    'version'                       => $app->version,
+                    'current_version_score'         => $app->averageUserRatingForCurrentVersion,
+                    'current_version_ratings_count' => $app->userRatingCountForCurrentVersion,
+                    'reviews'                       => $app->userRatingCount,
+                    'score'                         => $app->averageUserRating,
+                    'url'                           => $app->trackViewUrl,
+                    'bundle'                        => $app->bundleId,
+                    'released_on'                   => $app->releaseDate,
+                    'updated_on'                    => $app->currentVersionReleaseDate ?? $app->releaseDate,
+                    'developer'                     => $app->artistName,
+                    'developer_id'                  => $app->artistId,
+                    'genre'                         => $app->primaryGenreName,
+                    'genre_id'                      => $app->primaryGenreId,
+                    'currency'                      => $app->currency,
+
+
+                ];
+
+            });
+
+
+        }
+        catch (GuzzleException $error) {
+            return false;
+            return $error->getMessage();
+        }
+
     }
 }
