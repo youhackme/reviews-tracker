@@ -44,15 +44,18 @@ class FetchReviews extends Command
     {
         $this->info('Fetching Reviews');
 
-        $provider = $this->option('store');
-        $provider === 'apple' ? AppleStore::class : GooglePlay::class;
+        $store    = $this->option('store');
+        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
 
         $store = resolve($provider, [
-            'id' => (int)$this->option('id'),
+            [
+                'id' => $this->option('id'),
+            ],
         ]);
 
 
         $reviews = $store->reviews();
+
         if ($reviews) {
             $reviews->each(function ($review, $key) {
                 $position = $key + 1;
