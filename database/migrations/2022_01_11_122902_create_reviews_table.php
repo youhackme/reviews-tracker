@@ -20,8 +20,9 @@ class CreateReviewsTable extends Migration
             $table->string('url', 255);
             $table->string('author', 255);
             $table->string('title', 255);
-            $table->string('description', 255);
-            $table->decimal('score', $precision = 2, $scale = 2);
+            $table->string('description', 3000);
+            $table->string('score', 10);
+            $table->dateTimeTz('reviewed_at');
             $table->unsignedInteger('votes');
             $table->timestamps();
         });

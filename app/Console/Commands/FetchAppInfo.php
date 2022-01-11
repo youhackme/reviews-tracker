@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\AppStores\GooglePlay;
 use Illuminate\Console\Command;
 use App\AppStores\AppleStore;
+use App\Models\Application;
+use Carbon\Carbon;
 
 class FetchAppInfo extends Command
 {
@@ -42,23 +44,46 @@ class FetchAppInfo extends Command
      */
     public function handle()
     {
+        $store = $this->option('store');
+        $id    = $this->option('id');
+
+
         $this->info('Fetching Info');
 
-        $store    = $this->option('store');
+
         $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
 
         $store = resolve($provider, [
             [
-                'id' => $this->option('id'),
+                'id' => $id,
             ],
         ]);
 
         $apps = $store->search();
 
+
         if ($apps) {
             $apps->each(function ($app, $key) {
-                $position = $key + 1;
-                $this->info($position . '. ' . $app['name']);
+
+                $application = Application::firstOrCreate(
+                    ['applications_id' => $app['id']],
+                    [
+                        'applications_id' => $app['id'],
+                        'name'            => $app['name'],
+                        'screenshots'     => $app['screenshots'],
+                        'icon'            => $app['icon'],
+                        'developer_url'   => $app['developer_url'],
+                        'languages'       => $app['languages'],
+                        'reviews'         => $app['reviews'],
+                        'score'           => $app['score'],
+                        'url'             => $app['url'],
+                        'released_at'     => $app['released_on'],
+                        'developer_id'    => $app['developer_id'],
+                        'genre'           => $app['genre'],
+                    ]
+                );
+
+                $this->info($application['id'] . '. ' . $application['name']);
             });
         } else {
             $this->error('No App Found');
