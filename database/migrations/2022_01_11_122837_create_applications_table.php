@@ -22,9 +22,9 @@ class CreateApplicationsTable extends Migration
             $table->string('developer_url', 250);
             $table->json('languages');
             $table->unsignedInteger('reviews');
-            $table->decimal('score', $precision = 2, $scale = 2);
+            $table->string('score', 10);
             $table->string('url', 250);
-            $table->dateTime('released_at');
+            $table->dateTimeTz('released_at');
             $table->unsignedInteger('developer_id');
             $table->string('genre', 75);
             $table->timestamps();

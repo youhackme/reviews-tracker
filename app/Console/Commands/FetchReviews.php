@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\AppStores\AppleStore;
 use App\AppStores\GooglePlay;
 use Illuminate\Console\Command;
-use App\AppStores\AppleStore;
+use App\Models\Application;
+use App\Models\Review;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class FetchReviews extends Command
 {
@@ -42,27 +45,54 @@ class FetchReviews extends Command
      */
     public function handle()
     {
+        $id    = $this->option('id');
+        $store = $this->option('store');
+
+
         $this->info('Fetching Reviews');
 
-        $store    = $this->option('store');
         $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
 
         $store = resolve($provider, [
             [
-                'id' => $this->option('id'),
+                'id' => $id,
             ],
         ]);
 
 
         $reviews = $store->reviews();
 
-        if ($reviews) {
-            $reviews->each(function ($review, $key) {
-                $position = $key + 1;
-                $this->info($position . '. ' . $review['title']);
-            });
-        } else {
-            $this->error('No Reviews Found');
+
+        try {
+            $application = Application::where('applications_id', $id)->firstOrFail();
+
+            if ($reviews) {
+                $reviews->each(function ($review, $key) {
+
+                    Review::firstOrCreate(
+                        ['reviews_id' => $review['id']],
+                        [
+                            'reviews_id'  => $review['id'],
+                            'version'     => $review['version'],
+                            'url'         => $review['url'],
+                            'author'      => $review['author'],
+                            'title'       => $review['title'],
+                            'description' => $review['description'],
+                            'score'       => $review['rating'],
+                            'votes'       => $review['vote'],
+                            'reviewed_at' => $review['updated_on'],
+                        ]);
+
+                    $this->info('[' . $review['updated_on'] . ']' . '[' . $review['id'] . ']' . $review['title']);
+                });
+            } else {
+                $this->error('No Reviews Found');
+            }
         }
+        catch (ModelNotFoundException $error) {
+            $this->error("Application $id needs to be registered before fetching reviews");
+        }
+
+
     }
 }
