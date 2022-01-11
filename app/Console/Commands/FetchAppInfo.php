@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\AppStores\GooglePlay;
 use Illuminate\Console\Command;
 use App\AppStores\AppleStore;
 
@@ -43,8 +44,13 @@ class FetchAppInfo extends Command
     {
         $this->info('Fetching Info');
 
-        $store = resolve(AppleStore::class, [
-            'id' => (int)$this->option('id'),
+        $store    = $this->option('store');
+        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
+
+        $store = resolve($provider, [
+            [
+                'id' => $this->option('id'),
+            ],
         ]);
 
         $apps = $store->search();
