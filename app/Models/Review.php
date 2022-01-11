@@ -11,6 +11,7 @@ class Review extends Model
 {
     protected $fillable = [
         'id',
+        'applications_id',
         'reviews_id',
         'version',
         'url',

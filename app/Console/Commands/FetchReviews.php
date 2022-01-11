@@ -67,20 +67,24 @@ class FetchReviews extends Command
             $application = Application::where('applications_id', $id)->firstOrFail();
 
             if ($reviews) {
-                $reviews->each(function ($review, $key) {
+                $reviews->each(function ($review, $key) use ($application) {
 
                     Review::firstOrCreate(
-                        ['reviews_id' => $review['id']],
                         [
-                            'reviews_id'  => $review['id'],
-                            'version'     => $review['version'],
-                            'url'         => $review['url'],
-                            'author'      => $review['author'],
-                            'title'       => $review['title'],
-                            'description' => $review['description'],
-                            'score'       => $review['rating'],
-                            'votes'       => $review['vote'],
-                            'reviewed_at' => $review['updated_on'],
+                            'applications_id' => $application->id,
+                            'reviews_id'      => $review['id'],
+                        ],
+                        [
+                            'applications_id' => $application->id,
+                            'reviews_id'      => $review['id'],
+                            'version'         => $review['version'],
+                            'url'             => $review['url'],
+                            'author'          => $review['author'],
+                            'title'           => $review['title'],
+                            'description'     => $review['description'],
+                            'score'           => $review['rating'],
+                            'votes'           => $review['vote'],
+                            'reviewed_at'     => $review['updated_on'],
                         ]);
 
                     $this->info('[' . $review['updated_on'] . ']' . '[' . $review['id'] . ']' . $review['title']);
