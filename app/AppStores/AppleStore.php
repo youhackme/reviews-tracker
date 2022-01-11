@@ -21,10 +21,10 @@ class AppleStore implements StoreInterface
     public Client $client;
     public int $id;
 
-    public function __construct(Client $client, int $id)
+    public function __construct(Client $client, array $config)
     {
         $this->client = $client;
-        $this->id     = $id;
+        $this->id     = (int)$config['id'];
     }
 
     public function reviews(): bool|Collection
