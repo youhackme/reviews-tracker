@@ -62,7 +62,6 @@ class GooglePlay implements StoreInterface
                 return collect($reviews[0])->map(function ($review) {
                     $millisecondsLastDigits = (string)$review[5][1] ?? '000';
                     $reviewDate             = (int)$review[5][0] + (int)substr($millisecondsLastDigits, 0, 3);
-                    dd($review);
                     return [
                         'id'          => $review[0],
                         'username'    => $review[1][0],
