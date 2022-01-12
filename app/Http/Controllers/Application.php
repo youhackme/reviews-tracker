@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class Application extends Controller
 {
+
+    /**
+     * Search App on the app store by keyword
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function lookup(Request $request)
     {
         $term        = $request->input('search.text');

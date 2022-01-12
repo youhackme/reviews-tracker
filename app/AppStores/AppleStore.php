@@ -8,6 +8,7 @@
 
 namespace App\AppStores;
 
+use App\Models\Application;
 use App\StoreInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -115,7 +116,7 @@ class AppleStore implements StoreInterface
                 return false;
             }
 
-            return collect($json->results)->map(function ($app) {
+            $collection = collect($json->results)->map(function ($app) {
 
                 return [
                     'id'                            => $app->trackId,
@@ -135,18 +136,37 @@ class AppleStore implements StoreInterface
                     'score'                         => $app->averageUserRating,
                     'url'                           => $app->trackViewUrl,
                     'bundle'                        => $app->bundleId,
-                    'released_on'                   => $app->releaseDate,
-                    'updated_on'                    => $app->currentVersionReleaseDate ?? $app->releaseDate,
+                    'released_at'                   => $app->releaseDate,
+                    'updated_at'                    => $app->currentVersionReleaseDate ?? $app->releaseDate,
                     'developer'                     => $app->artistName,
                     'developer_id'                  => $app->artistId,
                     'genre'                         => $app->primaryGenreName,
                     'genre_id'                      => $app->primaryGenreId,
                     'currency'                      => $app->currency,
-
-
                 ];
 
+            })->each(function ($item) {
+                Application::firstOrCreate(
+                    ['applications_id' => $item['id']],
+                    [
+                        'applications_id' => $item['id'],
+                        'name'            => $item['name'],
+                        'screenshots'     => $item['screenshots'],
+                        'icon'            => $item['icon'],
+                        'developer_url'   => $item['developer_url'],
+                        'languages'       => $item['languages'],
+                        'reviews'         => $item['reviews'],
+                        'score'           => $item['score'],
+                        'url'             => $item['url'],
+                        'released_at'     => $item['released_at'],
+                        'developer_id'    => $item['developer_id'],
+                        'genre'           => $item['genre'],
+                    ]
+                );
             });
+
+
+            return $collection->first();
 
 
         }

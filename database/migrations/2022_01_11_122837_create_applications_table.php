@@ -25,7 +25,7 @@ class CreateApplicationsTable extends Migration
             $table->string('score', 10);
             $table->string('url', 250);
             $table->dateTimeTz('released_at');
-            $table->unsignedInteger('developer_id');
+            $table->unsignedBigInteger('developer_id');
             $table->string('genre', 75);
             $table->timestamps();
         });

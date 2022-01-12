@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\AppStores\GooglePlay;
 use Illuminate\Console\Command;
+use App\AppStores\GooglePlay;
 use App\AppStores\AppleStore;
-use App\Models\Application;
-use Carbon\Carbon;
+
 
 class FetchAppInfo extends Command
 {
@@ -59,32 +58,11 @@ class FetchAppInfo extends Command
             ],
         ]);
 
-        $apps = $store->app();
+        $app = $store->app();
 
 
-        if ($apps) {
-            $apps->each(function ($app, $key) {
-
-                $application = Application::firstOrCreate(
-                    ['applications_id' => $app['id']],
-                    [
-                        'applications_id' => $app['id'],
-                        'name'            => $app['name'],
-                        'screenshots'     => $app['screenshots'],
-                        'icon'            => $app['icon'],
-                        'developer_url'   => $app['developer_url'],
-                        'languages'       => $app['languages'],
-                        'reviews'         => $app['reviews'],
-                        'score'           => $app['score'],
-                        'url'             => $app['url'],
-                        'released_at'     => $app['released_on'],
-                        'developer_id'    => $app['developer_id'],
-                        'genre'           => $app['genre'],
-                    ]
-                );
-
-                $this->info($application['id'] . '. ' . $application['name']);
-            });
+        if ($app) {
+            $this->info($app['id'] . '. ' . $app['name']);
         } else {
             $this->error('No App Found');
         }
