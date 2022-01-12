@@ -94,7 +94,8 @@ class GooglePlay implements StoreInterface
         $this->reviews();
     }
 
-    public function search()
+
+    public function app()
     {
         $url = 'https://play.google.com/store/apps/details?id=' . $this->id . '&hl=' . $this->language . '&gl=' . $this->country;
         try {
@@ -186,6 +187,7 @@ class GooglePlay implements StoreInterface
         }
     }
 
+
     private function screenshots($data)
     {
 
@@ -217,6 +219,12 @@ class GooglePlay implements StoreInterface
             4 => $data[4][1],
             5 => $data[5][1],
         ];
+
+    }
+
+
+    public function search()
+    {
 
     }
 }
