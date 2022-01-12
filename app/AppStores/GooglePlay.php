@@ -12,17 +12,17 @@ use App\StoreInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
-use Symfony\Component\DomCrawler\Crawler;
 use GuzzleHttp\Psr7\Utils;
 
 class GooglePlay implements StoreInterface
 {
     public Client $client;
-    public string $id;
     public int $numberOfReviewsPerRequest = 100;
     public ?string $paginatedToken;
     public string $language = 'en';
     public string $country = 'us';
+    public array $config;
+
 
     const SORT = [
         'NEWEST'      => 2,
@@ -34,17 +34,16 @@ class GooglePlay implements StoreInterface
     public function __construct(Client $client, array $config)
     {
         $this->client         = $client;
-        $this->id             = $config['id'];
+        $this->config         = $config;
         $this->paginatedToken = $config['paginated_token'] ?? null;
-
     }
 
     public function reviews(): bool|Collection
     {
         $url         = 'https://play.google.com/_/PlayStoreUi/data/batchexecute?rpcids=qnKhOb&f.sid=-697906427155521722&bl=boq_playuiserver_20190903.08_p0&hl=' . $this->language . '&gl=' . $this->country . '&authuser&soc-app=121&soc-platform=1&soc-device=1&_reqid=1065213';
-        $requestType = 'f.req=%5B%5B%5B%22UsvDTd%22%2C%22%5Bnull%2Cnull%2C%5B2%2C' . $this->sort . '%2C%5B' . $this->numberOfReviewsPerRequest . '%2Cnull%2Cnull%5D%2Cnull%2C%5B%5D%5D%2C%5B%5C%22' . $this->id . '%5C%22%2C7%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D';
+        $requestType = 'f.req=%5B%5B%5B%22UsvDTd%22%2C%22%5Bnull%2Cnull%2C%5B2%2C' . $this->sort . '%2C%5B' . $this->numberOfReviewsPerRequest . '%2Cnull%2Cnull%5D%2Cnull%2C%5B%5D%5D%2C%5B%5C%22' . $this->config['id'] . '%5C%22%2C7%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D';
         if ($this->paginatedToken !== null) {
-            $requestType = 'f.req=%5B%5B%5B%22UsvDTd%22%2C%22%5Bnull%2Cnull%2C%5B2%2C' . $this->sort . '%2C%5B' . $this->numberOfReviewsPerRequest . '%2Cnull%2C%5C%22' . $this->paginatedToken . '%5C%22%5D%2Cnull%2C%5B%5D%5D%2C%5B%5C%22' . $this->id . '%5C%22%2C7%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D';
+            $requestType = 'f.req=%5B%5B%5B%22UsvDTd%22%2C%22%5Bnull%2Cnull%2C%5B2%2C' . $this->sort . '%2C%5B' . $this->numberOfReviewsPerRequest . '%2Cnull%2C%5C%22' . $this->paginatedToken . '%5C%22%5D%2Cnull%2C%5B%5D%5D%2C%5B%5C%22' . $this->config['id'] . '%5C%22%2C7%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D';
         }
 
         try {
@@ -69,7 +68,7 @@ class GooglePlay implements StoreInterface
                         'reviewed_on' => (new \DateTime())->setTimestamp($reviewDate)->format('Y-m-d H:i:s.v'),
                         'score'       => $review[2],
                         'scoreText'   => $review[2],
-                        'url'         => 'https://play.google.com/store/apps/details?id=' . $this->id . '&reviewId=' . urlencode($review[0]),
+                        'url'         => 'https://play.google.com/store/apps/details?id=' . $this->config['id'] . '&reviewId=' . urlencode($review[0]),
                         'title'       => $review[0],
                         'text'        => $review[4],
                         'replyDate'   => $review[7][2] ?? null,
@@ -94,10 +93,9 @@ class GooglePlay implements StoreInterface
         $this->reviews();
     }
 
-
     public function app()
     {
-        $url = 'https://play.google.com/store/apps/details?id=' . $this->id . '&hl=' . $this->language . '&gl=' . $this->country;
+        $url = 'https://play.google.com/store/apps/details?id=' . $this->config['id'] . '&hl=' . $this->language . '&gl=' . $this->country;
         try {
             $response = $this->client->get($url);
             $html     = $response->getBody()->getContents();
@@ -187,7 +185,6 @@ class GooglePlay implements StoreInterface
         }
     }
 
-
     private function screenshots($data)
     {
 
@@ -222,9 +219,67 @@ class GooglePlay implements StoreInterface
 
     }
 
-
     public function search()
     {
+        $url = 'https://play.google.com/store/search?c=apps&q=21buttons&hl=en&gl=us&price=0';
+        try {
+            $response = $this->client->get($url);
+            $html     = $response->getBody()->getContents();
+            preg_match_all('/>AF_initDataCallback[\s\S]*?<\/script/', $html, $matches, PREG_PATTERN_ORDER);
 
+            $matches = current($matches);
+            if (!empty($matches)) {
+
+
+                $result = collect($matches)->filter(function ($match) {
+
+                    preg_match_all("/(ds:.*?)'/", $match, $keyMatch, PREG_PATTERN_ORDER);
+                    preg_match_all("/data:([\s\S]*?), sideChannel: {}}\);<\//", $match, $valueMatch,
+                        PREG_PATTERN_ORDER);
+
+                    if (isset($keyMatch[1][0]) && isset($valueMatch[1][0])) {
+                        return true;
+                    }
+                    return false;
+                })->mapWithKeys(function ($match) use ($html) {
+
+                    preg_match_all("/(ds:.*?)'/", $match, $keyMatch, PREG_PATTERN_ORDER);
+                    preg_match_all("/data:([\s\S]*?), sideChannel: {}}\);<\//", $match, $valueMatch,
+                        PREG_PATTERN_ORDER);
+
+                    $key   = $keyMatch[1][0];
+                    $value = json_decode($valueMatch[1][0]);
+
+                    return [
+                        $key => $value,
+                    ];
+
+
+                })->filter(function ($item, $key) {
+                    if ($key === 'ds:3') {
+                        return true;
+                    }
+                    return false;
+                })->first();
+
+
+                return collect($result[0][1][0][0][0])->map(function ($app) {
+
+                    return [
+                        'name'        => $app[2],
+                        'image'       => $app[1][1][0][3][2],
+                        'developer'   => $app[4][0][0][0],
+                        'description' => $app[4][1][1][1][1],
+                        'id'          => $app[12][0],
+                    ];
+                });
+            }
+
+            return false;
+        }
+        catch (GuzzleException $error) {
+            dd($error);
+            return false;
+        }
     }
 }

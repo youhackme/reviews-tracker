@@ -19,18 +19,18 @@ class AppleStore implements StoreInterface
 {
 
     public Client $client;
-    public int $id;
+    public array $config;
 
     public function __construct(Client $client, array $config)
     {
         $this->client = $client;
-        $this->id     = (int)$config['id'];
+        $this->config = $config;
     }
 
     public function reviews(): bool|Collection
     {
 
-        $url = 'https://itunes.apple.com/us/rss/customerreviews/page=1/id=' . $this->id . '/sortby=mostrecent/json';
+        $url = 'https://itunes.apple.com/us/rss/customerreviews/page=1/id=' . $this->config['id'] . '/sortby=mostrecent/json';
 
         try {
             $response = $this->client->get($url);
@@ -67,7 +67,7 @@ class AppleStore implements StoreInterface
 
     public function ratings()
     {
-        $url = 'https://itunes.apple.com/us/customer-reviews/id' . $this->id . '?displayable-kind=11';
+        $url = 'https://itunes.apple.com/us/customer-reviews/id' . $this->config['id'] . '?displayable-kind=11';
 
         try {
             $response = $this->client->get($url, [
@@ -105,7 +105,7 @@ class AppleStore implements StoreInterface
 
     public function app()
     {
-        $url = 'https://itunes.apple.com/lookup?id=' . $this->id . '&country=us&entity=software';
+        $url = 'https://itunes.apple.com/lookup?id=' . $this->config['id'] . '&country=us&entity=software';
 
         try {
             $response = $this->client->get($url);
