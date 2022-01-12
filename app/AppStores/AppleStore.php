@@ -159,6 +159,52 @@ class AppleStore implements StoreInterface
 
     public function search()
     {
+        try {
+            $url      = 'https://itunes.apple.com/search?term=' . $this->config['term'] . '&entity=software&country=' . $this->config['country'] . '&lang=' . $this->config['language'] . '&limit=' . $this->config['limit'];
+            $response = $this->client->get($url);
+            $json     = json_decode($response->getBody()->getContents());
+            if ($json->resultCount === 0) {
+                return false;
+            }
 
+            return collect($json->results)->map(function ($app) {
+
+                return [
+                    'id'                            => $app->trackId,
+                    'name'                          => $app->trackName,
+                    'screenshots'                   => $app->screenshotUrls,
+                    'required_os'                   => $app->minimumOsVersion,
+                    'ipad_screenshots'              => $app->ipadScreenshotUrls,
+                    'icon'                          => $app->artworkUrl512,
+                    'developer_url'                 => $app->artistViewUrl,
+                    'languages'                     => $app->languageCodesISO2A,
+                    'size'                          => $app->fileSizeBytes,
+                    'price'                         => $app->price,
+                    'version'                       => $app->version,
+                    'current_version_score'         => $app->averageUserRatingForCurrentVersion,
+                    'current_version_ratings_count' => $app->userRatingCountForCurrentVersion,
+                    'reviews'                       => $app->userRatingCount,
+                    'score'                         => $app->averageUserRating,
+                    'url'                           => $app->trackViewUrl,
+                    'bundle'                        => $app->bundleId,
+                    'released_on'                   => $app->releaseDate,
+                    'updated_on'                    => $app->currentVersionReleaseDate ?? $app->releaseDate,
+                    'developer'                     => $app->artistName,
+                    'developer_id'                  => $app->artistId,
+                    'genre'                         => $app->primaryGenreName,
+                    'genre_id'                      => $app->primaryGenreId,
+                    'currency'                      => $app->currency,
+
+
+                ];
+
+            });
+
+
+        }
+        catch (GuzzleException $error) {
+            return false;
+            return $error->getMessage();
+        }
     }
 }

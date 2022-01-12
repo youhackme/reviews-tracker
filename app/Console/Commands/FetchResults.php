@@ -48,21 +48,18 @@ class FetchResults extends Command
         $term  = $this->option('term');
         $store = $this->option('store');
 
-
         $this->info('Fetching Results');
 
         $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
 
         $store = resolve($provider, [
             [
-                'q'     => $term,
-                'c'     => 'apps',
-                'hl'    => 'en',
-                'gl'    => 'us',
-                'price' => 0,
+                'term'     => $term,
+                'language' => 'en',
+                'country'  => 'us',
+                'limit'    => 5,
             ],
         ]);
-
 
         $results = $store->search();
 
@@ -78,7 +75,6 @@ class FetchResults extends Command
         catch (\Exception $error) {
             $this->error(json_encode($error));
         }
-
 
     }
 }
