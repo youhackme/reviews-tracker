@@ -59,7 +59,7 @@ class FetchAppInfo extends Command
             ],
         ]);
 
-        $apps = $store->search();
+        $apps = $store->app();
 
 
         if ($apps) {

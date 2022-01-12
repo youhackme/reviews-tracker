@@ -103,7 +103,7 @@ class AppleStore implements StoreInterface
 
     }
 
-    public function search()
+    public function app()
     {
         $url = 'https://itunes.apple.com/lookup?id=' . $this->id . '&country=us&entity=software';
 
@@ -154,6 +154,11 @@ class AppleStore implements StoreInterface
             return false;
             return $error->getMessage();
         }
+
+    }
+
+    public function search()
+    {
 
     }
 }
