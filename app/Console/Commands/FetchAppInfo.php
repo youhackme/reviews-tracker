@@ -55,6 +55,8 @@ class FetchAppInfo extends Command
         $store = resolve($provider, [
             [
                 'id' => $id,
+                'language' => 'en',
+                'country'  => 'us',
             ],
         ]);
 
