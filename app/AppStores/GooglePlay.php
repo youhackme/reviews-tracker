@@ -267,7 +267,7 @@ class GooglePlay implements StoreInterface
 
                     return [
                         'name'        => $app[2],
-                        'image'       => $app[1][1][0][3][2],
+                        'icon'       => $app[1][1][0][3][2],
                         'developer'   => $app[4][0][0][0],
                         'description' => $app[4][1][1][1][1],
                         'id'          => $app[12][0],
