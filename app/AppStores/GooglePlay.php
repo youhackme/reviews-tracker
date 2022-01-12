@@ -221,7 +221,7 @@ class GooglePlay implements StoreInterface
 
     public function search()
     {
-        $url = 'https://play.google.com/store/search?c=apps&q=21buttons&hl=en&gl=us&price=0';
+        $url = 'https://play.google.com/store/search?c=apps&q=' . $this->config['term'] . '&hl=' . $this->config['language'] . '&gl=' . $this->config['country'] . '&price=0';
         try {
             $response = $this->client->get($url);
             $html     = $response->getBody()->getContents();
