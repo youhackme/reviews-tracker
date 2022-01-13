@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\AppStores\AppleStore;
-use App\AppStores\GooglePlay;
+use App\AppStores\AppleStoreProvider;
+use App\AppStores\GooglePlayStoreProvider;
 use Illuminate\Http\Request;
 
 class Application extends Controller
@@ -21,7 +21,7 @@ class Application extends Controller
         $countryCode = $request->input('search.country_code', 'us');
         $store       = $request->input('search.store');
 
-        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
+        $provider = ($store == 'apple') ? AppleStoreProvider::class : GooglePlayStoreProvider::class;
         try {
             $store = resolve($provider, [
                 [

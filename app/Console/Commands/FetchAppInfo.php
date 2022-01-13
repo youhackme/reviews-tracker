@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\AppStores\GooglePlay;
-use App\AppStores\AppleStore;
-
+use App\AppStores\GooglePlayStoreProvider;
+use App\AppStores\AppleStoreProvider;
+use App\Engine\SaveStoreData;
 
 class FetchAppInfo extends Command
 {
@@ -16,8 +16,10 @@ class FetchAppInfo extends Command
      */
     protected $signature = 'fetch:app
                             {--id=}
-                            {--store=}';
+                            {--store=}
+                            {--save}';
 //id for testing:1205990992, 1600880394, 1586321858
+// com.pinterest.twa
 
     /**
      * The console command description.
@@ -45,23 +47,24 @@ class FetchAppInfo extends Command
     {
         $store = $this->option('store');
         $id    = $this->option('id');
-
+        $save  = $this->option('save');
 
         $this->info('Fetching Info');
 
+        $provider = ($store == 'apple') ? AppleStoreProvider::class : GooglePlayStoreProvider::class;
 
-        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
+        if ($save === true) {
+            $provider = SaveStoreData::class;
+        }
 
         $store = resolve($provider, [
-            [
-                'id' => $id,
-                'language' => 'en',
-                'country'  => 'us',
-            ],
+            'id'       => $id,
+            'language' => 'en',
+            'country'  => 'us',
+            'store' => $store,
         ]);
 
         $app = $store->app();
-
 
         if ($app) {
             $this->info($app['id'] . '. ' . $app['name']);

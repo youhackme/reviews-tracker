@@ -8,14 +8,13 @@
 
 namespace App\AppStores;
 
-use App\Models\Application;
 use App\StoreInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use GuzzleHttp\Psr7\Utils;
 
-class GooglePlay implements StoreInterface
+class GooglePlayStoreProvider implements StoreInterface
 {
     public Client $client;
     public int $numberOfReviewsPerRequest = 100;
@@ -64,18 +63,19 @@ class GooglePlay implements StoreInterface
                     $reviewDate             = (int)$review[5][0] + (int)substr($millisecondsLastDigits, 0, 3);
                     return [
                         'id'          => $review[0],
-                        'username'    => $review[1][0],
+                        'author'      => $review[1][0],
                         'userimage'   => $review[1][1][3][2],
-                        'reviewed_on' => (new \DateTime())->setTimestamp($reviewDate)->format('Y-m-d H:i:s.v'),
+                        'reviewed_at' => (new \DateTime())->setTimestamp($reviewDate)->format('Y-m-d H:i:s.v'),
                         'score'       => $review[2],
                         'scoreText'   => $review[2],
                         'url'         => 'https://play.google.com/store/apps/details?id=' . $this->config['id'] . '&reviewId=' . urlencode($review[0]),
-                        'title'       => $review[0],
-                        'text'        => $review[4],
+                        'title'       => '',
+                        'description' => $review[4],
                         'replyDate'   => $review[7][2] ?? null,
                         'replyText'   => $review[7][1] ?? null,
-                        'version'     => $review[10],
-                        'thumbsUp'    => $review[6],
+                        'version'     => $review[10] ?? '',
+                        'votes'       => $review[6],
+                        'country'     => '',
                     ];
                 });
             } else {
@@ -106,7 +106,6 @@ class GooglePlay implements StoreInterface
             $matches = current($matches);
             if (!empty($matches)) {
 
-
                 $result = collect($matches)->filter(function ($match) {
 
                     preg_match_all("/(ds:.*?)'/", $match, $keyMatch, PREG_PATTERN_ORDER);
@@ -133,67 +132,47 @@ class GooglePlay implements StoreInterface
 
                 $emailAddress = $result['ds:5'][0][12][5][4][0] ?? $result['ds:5'][0][12][5][2][0] ?? null;
 
-                $collection = collect([
+                return collect([
                     [
-                        'id'                    => trim($this->config['id']),
-                        'name'                  => $result['ds:5'][0][0][0],
-                        'description'           => $result['ds:5'][0][10][0][1],
-                        'descriptionHTML'       => $result['ds:5'][0][10][0][1],
-                        'summary'               => $result['ds:5'][0][10][1][1],
-                        'installs'              => $result['ds:5'][0][12][9][0],
-                        'minInstalls'           => $result['ds:5'][0][12][9][1],
-                        'maxInstalls'           => $result['ds:5'][0][12][9][2],
-                        'score'                 => $result['ds:6'][0][6][0][1],
-                        'scoreText'             => $result['ds:6'][0][6][0][0],
-                        'ratings'               => $result['ds:6'][0][6][2][1],
-                        'reviews'               => $result['ds:6'][0][6][3][1],
-                        'histogram'             => $this->buildHistogram($result['ds:6'][0][6][1]),
-                        'price'                 => $result ['ds:3'][0][2][0][0][0][1][0][0],
-                        'free'                  => ($result ['ds:3'][0][2][0][0][0][1][0][0]) === 0,
-                        'currency'              => $result['ds:3'][0][2][0][0][0][1][0][1],
-                        'priceText'             => $result ['ds:3'][0][2][0][0][0][1][0][2],
-                        'available'             => $result ['ds:5'][0][12][11][0],
-                        'offersIAP'             => !(($result['ds:5'][0][12][12] == null)),
-                        'size'                  => $result['ds:8'][0],
-                        'android_version'       => $result ['ds:8'][2],
-                        'android_version_text'  => $result['ds:8'][2],
-                        'developer'             => $result['ds:5'][0][12][5][1],
-                        'developer_id'          => $result['ds:5'][0][12][5][0][0],
-                        'developer_email'       => $result ['ds:5'][0][12][5][2][0],
-                        'developer_url'         => $result['ds:5'][0][12][5][3][5][2],
-                        'developer_address'     => $emailAddress,
-                        'privacyPolicy'         => $result['ds:5'][0][12][7][2],
-                        'developer_internal_id' => $result['ds:5'][0][12][5][0][0],
-                        'genre'                 => $result['ds:5'][0][12][13][0][0],
-                        'icon'                  => $result['ds:5'][0][12][1][3][2],
-                        'screenshots'           => $this->screenshots($result['ds:5'][0][12][0]),
-                        'released_at'           => (new \DateTime())->setTimestamp($result ['ds:5'][0][12][8][0])->format('Y-m-d H:i:s.v'),
-                        'version'               => $result['ds:8'][1],
-                        'recentChanges'         => $result['ds:5'][0][12][6][1],
-                        'features'              => $result ['ds:5'][0][12][16],
-                        'url'                   => 'https://play.google.com/store/apps/details?id=' . $this->config['id'] . '&hl=' . $this->config['language'] . '&gl=' . $this->config['country'],
+                        'id'                   => trim($this->config['id']),
+                        'name'                 => $result['ds:5'][0][0][0],
+                        'description'          => $result['ds:5'][0][10][0][1],
+                        'descriptionHTML'      => $result['ds:5'][0][10][0][1],
+                        'summary'              => $result['ds:5'][0][10][1][1],
+                        'installs'             => $result['ds:5'][0][12][9][0],
+                        'minInstalls'          => $result['ds:5'][0][12][9][1],
+                        'maxInstalls'          => $result['ds:5'][0][12][9][2],
+                        'score'                => $result['ds:6'][0][6][0][1],
+                        'scoreText'            => $result['ds:6'][0][6][0][0],
+                        'ratings'              => $result['ds:6'][0][6][2][1],
+                        'reviews'              => $result['ds:6'][0][6][3][1],
+                        'histogram'            => $this->buildHistogram($result['ds:6'][0][6][1]),
+                        'price'                => $result ['ds:3'][0][2][0][0][0][1][0][0],
+                        'free'                 => ($result ['ds:3'][0][2][0][0][0][1][0][0]) === 0,
+                        'currency'             => $result['ds:3'][0][2][0][0][0][1][0][1],
+                        'priceText'            => $result ['ds:3'][0][2][0][0][0][1][0][2],
+                        'available'            => $result ['ds:5'][0][12][11][0],
+                        'offersIAP'            => !(($result['ds:5'][0][12][12] == null)),
+                        'size'                 => $result['ds:8'][0],
+                        'android_version'      => $result ['ds:8'][2],
+                        'android_version_text' => $result['ds:8'][2],
+                        'developer'            => $result['ds:5'][0][12][5][1],
+                        'developer_email'      => $result ['ds:5'][0][12][5][2][0],
+                        'developer_url'        => $result['ds:5'][0][12][5][3][5][2],
+                        'developer_address'    => $emailAddress,
+                        'privacyPolicy'        => $result['ds:5'][0][12][7][2],
+                        'developer_id'         => $result['ds:5'][0][12][5][0][0],
+                        'genre'                => $result['ds:5'][0][12][13][0][0],
+                        'icon'                 => $result['ds:5'][0][12][1][3][2],
+                        'screenshots'          => $this->screenshots($result['ds:5'][0][12][0]),
+                        'released_at'          => (new \DateTime())->setTimestamp($result ['ds:5'][0][12][8][0])->format('Y-m-d H:i:s.v'),
+                        'version'              => $result['ds:8'][1],
+                        'recentChanges'        => $result['ds:5'][0][12][6][1],
+                        'features'             => $result ['ds:5'][0][12][16],
+                        'languages'            => [$this->config['language']],
+                        'url'                  => 'https://play.google.com/store/apps/details?id=' . $this->config['id'] . '&hl=' . $this->config['language'] . '&gl=' . $this->config['country'],
                     ],
-                ])->each(function ($item) {
-                    Application::firstOrCreate(
-                        ['applications_id' => $item['id']],
-                        [
-                            'applications_id' => $item['id'],
-                            'name'            => $item['name'],
-                            'screenshots'     => $item['screenshots'],
-                            'icon'            => $item['icon'],
-                            'developer_url'   => $item['developer_url'],
-                            'languages'       => json_encode([$this->config['language']]),
-                            'reviews'         => $item['reviews'],
-                            'score'           => $item['score'],
-                            'url'             => $item['url'],
-                            'released_at'     => $item['released_at'],
-                            'developer_id'    => $item['developer_internal_id'],
-                            'genre'           => $item['genre'],
-                        ]
-                    );
-                });
-
-                return $collection->first();
+                ])->first();
 
             }
 

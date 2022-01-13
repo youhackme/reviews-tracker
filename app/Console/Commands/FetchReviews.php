@@ -2,12 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\AppStores\AppleStore;
-use App\AppStores\GooglePlay;
+use App\AppStores\AppleStoreProvider;
+use App\AppStores\GooglePlayStoreProvider;
+use App\Engine\SaveStoreData;
 use Illuminate\Console\Command;
-use App\Models\Application;
-use App\Models\Review;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class FetchReviews extends Command
 {
@@ -19,7 +18,8 @@ class FetchReviews extends Command
     protected $signature = 'fetch:reviews
                             {--id=}
                             {--store=}
-                            {--country=us}';
+                            {--country=us}
+                            {--save}';
 //id for testing:1205990992, 1600880394, 1586321858
 
     /**
@@ -49,67 +49,35 @@ class FetchReviews extends Command
         $id      = $this->option('id');
         $store   = $this->option('store');
         $country = $this->option('country');
+        $save    = $this->option('save');
 
         $this->info('Fetching Reviews');
-        $provider  = GooglePlay::class;
+
+
+        $provider = ($store == 'apple') ? AppleStoreProvider::class : GooglePlayStoreProvider::class;
+
         $arguments = [
-            [
-                'id' => $id,
-            ],
+            'id'    => $id,
+            'store' => $store,
         ];
 
         if ($store == 'apple') {
-            $arguments = [
-                [
-                    'id'      => $id,
-                    'country' => $country,
-                ],
-            ];
-            $provider  = AppleStore::class;
+            $arguments['country'] = $country;
         }
 
+        if ($save === true) {
+            $provider = SaveStoreData::class;
+        }
 
-        $store = resolve($provider, $arguments);
-
-
+        $store   = resolve($provider, $arguments);
         $reviews = $store->reviews();
 
-
-        try {
-            $application = Application::where('applications_id', $id)->firstOrFail();
-
-            if ($reviews) {
-                $reviews->each(function ($review, $key) use ($application) {
-
-                    Review::firstOrCreate(
-                        [
-                            'applications_id' => $application->id,
-                            'reviews_id'      => $review['id'],
-                        ],
-                        [
-                            'applications_id' => $application->id,
-                            'reviews_id'      => $review['id'],
-                            'version'         => $review['version'],
-                            'url'             => $review['url'],
-                            'author'          => $review['author'],
-                            'title'           => $review['title'],
-                            'description'     => $review['description'],
-                            'score'           => $review['score'],
-                            'votes'           => $review['votes'],
-                            'country'         => $review['country'],
-                            'reviewed_at'     => $review['reviewed_at'],
-                        ]);
-
-                    $this->info('[' . $review['reviewed_at'] . ']' . '[' . $review['id'] . ']' . $review['title']);
-                });
-            } else {
-                $this->error('No Reviews Found');
-            }
+        if ($reviews) {
+            $reviews->each(function ($review) {
+                $this->info('[' . $review['reviewed_at'] . ']' . '[' . $review['id'] . ']' . $review['description']);
+            });
+        } else {
+            $this->error('No Reviews Found');
         }
-        catch (ModelNotFoundException $error) {
-            $this->error("Application $id needs to be registered before fetching reviews");
-        }
-
-
     }
 }

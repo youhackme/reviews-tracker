@@ -16,13 +16,13 @@ use Illuminate\Support\Collection;
 use Symfony\Component\DomCrawler\Crawler;
 
 
-class AppleStore implements StoreInterface
+class AppleStoreProvider implements StoreInterface
 {
 
     public Client $client;
     public array $config;
 
-    public function __construct(Client $client, array $config)
+    public function __construct(Client $client, $config)
     {
         $this->client = $client;
         $this->config = $config;
@@ -30,7 +30,6 @@ class AppleStore implements StoreInterface
 
     public function reviews(): bool|Collection
     {
-
         $url = 'https://itunes.apple.com/' . $this->config['country'] . '/rss/customerreviews/page=1/id=' . $this->config['id'] . '/sortby=mostrecent/json';
 
         try {
@@ -48,12 +47,12 @@ class AppleStore implements StoreInterface
                     'author'      => $review->author->name->label,
                     'url'         => $review->author->uri->label,
                     'reviewed_at' => $review->updated->label,
-                    'score'      => (int)$review->{'im:rating'}->label,
+                    'score'       => (int)$review->{'im:rating'}->label,
                     'version'     => $review->{'im:version'}->label,
                     'id'          => $review->id->label,
                     'title'       => $review->title->label,
                     'description' => $review->content->label,
-                    'votes'        => $review->{'im:voteSum'}->label,
+                    'votes'       => $review->{'im:voteSum'}->label,
                     'country'     => $this->config['country'],
                 ];
 
@@ -117,7 +116,7 @@ class AppleStore implements StoreInterface
                 return false;
             }
 
-            $collection = collect($json->results)->map(function ($app) {
+            return collect($json->results)->map(function ($app) {
 
                 return [
                     'id'                            => $app->trackId,
@@ -146,29 +145,7 @@ class AppleStore implements StoreInterface
                     'currency'                      => $app->currency,
                 ];
 
-            })->each(function ($item) {
-                Application::firstOrCreate(
-                    ['applications_id' => $item['id']],
-                    [
-                        'applications_id' => $item['id'],
-                        'name'            => $item['name'],
-                        'screenshots'     => $item['screenshots'],
-                        'icon'            => $item['icon'],
-                        'developer_url'   => $item['developer_url'],
-                        'languages'       => $item['languages'],
-                        'reviews'         => $item['reviews'],
-                        'score'           => $item['score'],
-                        'url'             => $item['url'],
-                        'released_at'     => $item['released_at'],
-                        'developer_id'    => $item['developer_id'],
-                        'genre'           => $item['genre'],
-                    ]
-                );
-            });
-
-
-            return $collection->first();
-
+            })->first();
 
         }
         catch (GuzzleException $error) {
@@ -215,8 +192,6 @@ class AppleStore implements StoreInterface
                     'genre'                         => $app->primaryGenreName,
                     'genre_id'                      => $app->primaryGenreId,
                     'currency'                      => $app->currency,
-
-
                 ];
 
             });

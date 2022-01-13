@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\AppStores\AppleStore;
-use App\AppStores\GooglePlay;
+use App\AppStores\AppleStoreProvider;
+use App\AppStores\GooglePlayStoreProvider;
 use Illuminate\Console\Command;
 use App\Models\Application;
 use App\Models\Review;
@@ -50,15 +50,13 @@ class FetchResults extends Command
 
         $this->info('Fetching Results');
 
-        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
+        $provider = ($store == 'apple') ? AppleStoreProvider::class : GooglePlayStoreProvider::class;
 
         $store = resolve($provider, [
-            [
-                'term'     => $term,
-                'language' => 'en',
-                'country'  => 'us',
-                'limit'    => 5,
-            ],
+            'term'     => $term,
+            'language' => 'en',
+            'country'  => 'us',
+            'limit'    => 5,
         ]);
 
         $results = $store->search();

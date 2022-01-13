@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\AppStores\AppleStore;
-use App\AppStores\GooglePlay;
+use App\AppStores\AppleStoreProvider;
+use App\AppStores\GooglePlayStoreProvider;
 use Illuminate\Http\Request;
 use App\Models\Subscription;
 use App\Models\Application;
@@ -16,7 +16,7 @@ class Subscribe extends Controller
         $id     = $request->input('id');
         $status = $request->input('status', 1);
 
-        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
+        $provider = ($store == 'apple') ? AppleStoreProvider::class : GooglePlayStoreProvider::class;
 
         $store = resolve($provider, [
             [

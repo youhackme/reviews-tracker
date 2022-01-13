@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\AppStores\AppleStore;
 use GuzzleHttp\Client;
-use App\AppStores\GooglePlay;
+use App\AppStores\GooglePlayStoreProvider;
+use App\AppStores\AppleStoreProvider;
+use App\Engine\SaveStoreData;
+use App\Engine\GooglePlayStore;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,13 +28,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->bind(AppleStore::class, function ($app, $params) {
-            return new AppleStore($app->make(Client::class), current($params));
+        $this->app->bind(AppleStoreProvider::class, function ($app, $params) {
+            return new AppleStoreProvider($app->make(Client::class), $params);
         });
 
-        $this->app->bind(GooglePlay::class, function ($app, $params) {
-            return new GooglePlay($app->make(Client::class), current($params));
+        $this->app->bind(GooglePlayStoreProvider::class, function ($app, $params) {
+            return new GooglePlayStoreProvider($app->make(Client::class), $params);
         });
 
+        $this->app->bind(SaveStoreData::class, function ($app, $params) {
+            return new SaveStoreData($params);
+        });
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\AppStores\AppleStore;
+use App\AppStores\AppleStoreProvider;
 
 class FetchRatings extends Command
 {
@@ -43,7 +43,7 @@ class FetchRatings extends Command
     {
         $this->info('Fetching Ratings');
 
-        $store = resolve(AppleStore::class, [
+        $store = resolve(AppleStoreProvider::class, [
             'id' => (int)$this->option('id'),
         ]);
 
