@@ -18,7 +18,8 @@ class FetchReviews extends Command
      */
     protected $signature = 'fetch:reviews
                             {--id=}
-                            {--store=}';
+                            {--store=}
+                            {--country=us}';
 //id for testing:1205990992, 1600880394, 1586321858
 
     /**
@@ -45,19 +46,30 @@ class FetchReviews extends Command
      */
     public function handle()
     {
-        $id    = $this->option('id');
-        $store = $this->option('store');
-
+        $id      = $this->option('id');
+        $store   = $this->option('store');
+        $country = $this->option('country');
 
         $this->info('Fetching Reviews');
-
-        $provider = ($store == 'apple') ? AppleStore::class : GooglePlay::class;
-
-        $store = resolve($provider, [
+        $provider  = GooglePlay::class;
+        $arguments = [
             [
                 'id' => $id,
             ],
-        ]);
+        ];
+
+        if ($store == 'apple') {
+            $arguments = [
+                [
+                    'id'      => $id,
+                    'country' => $country,
+                ],
+            ];
+            $provider  = AppleStore::class;
+        }
+
+
+        $store = resolve($provider, $arguments);
 
 
         $reviews = $store->reviews();
@@ -82,12 +94,13 @@ class FetchReviews extends Command
                             'author'          => $review['author'],
                             'title'           => $review['title'],
                             'description'     => $review['description'],
-                            'score'           => $review['rating'],
-                            'votes'           => $review['vote'],
-                            'reviewed_at'     => $review['updated_on'],
+                            'score'           => $review['score'],
+                            'votes'           => $review['votes'],
+                            'country'         => $review['country'],
+                            'reviewed_at'     => $review['reviewed_at'],
                         ]);
 
-                    $this->info('[' . $review['updated_on'] . ']' . '[' . $review['id'] . ']' . $review['title']);
+                    $this->info('[' . $review['reviewed_at'] . ']' . '[' . $review['id'] . ']' . $review['title']);
                 });
             } else {
                 $this->error('No Reviews Found');

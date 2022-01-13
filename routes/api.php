@@ -16,7 +16,7 @@ use App\Http\Controllers\Subscribe;
 |
 */
 Route::post('/application/lookup', [Application::class, 'lookup']);
-Route::post('/user/subscribe', [Subscribe::class, 'subscribe']);
+Route::post('/user/subscribe', [Subscribe::class, 'save']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

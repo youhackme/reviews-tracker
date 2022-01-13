@@ -10,7 +10,7 @@ use App\Models\Application;
 
 class Subscribe extends Controller
 {
-    public function subscribe(Request $request)
+    public function save(Request $request)
     {
         $store  = $request->input('store');
         $id     = $request->input('id');

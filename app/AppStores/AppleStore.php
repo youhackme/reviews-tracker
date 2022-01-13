@@ -31,7 +31,7 @@ class AppleStore implements StoreInterface
     public function reviews(): bool|Collection
     {
 
-        $url = 'https://itunes.apple.com/us/rss/customerreviews/page=1/id=' . $this->config['id'] . '/sortby=mostrecent/json';
+        $url = 'https://itunes.apple.com/' . $this->config['country'] . '/rss/customerreviews/page=1/id=' . $this->config['id'] . '/sortby=mostrecent/json';
 
         try {
             $response = $this->client->get($url);
@@ -47,13 +47,14 @@ class AppleStore implements StoreInterface
                 return [
                     'author'      => $review->author->name->label,
                     'url'         => $review->author->uri->label,
-                    'updated_on'  => $review->updated->label,
-                    'rating'      => (int)$review->{'im:rating'}->label,
+                    'reviewed_at' => $review->updated->label,
+                    'score'      => (int)$review->{'im:rating'}->label,
                     'version'     => $review->{'im:version'}->label,
                     'id'          => $review->id->label,
                     'title'       => $review->title->label,
                     'description' => $review->content->label,
-                    'vote'        => $review->{'im:voteSum'}->label,
+                    'votes'        => $review->{'im:voteSum'}->label,
+                    'country'     => $this->config['country'],
                 ];
 
             });

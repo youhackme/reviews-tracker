@@ -22,6 +22,7 @@ class CreateReviewsTable extends Migration
             $table->string('author', 255);
             $table->string('title', 255);
             $table->string('description', 3000);
+            $table->string('country', 10);
             $table->string('score', 10);
             $table->dateTimeTz('reviewed_at');
             $table->unsignedInteger('votes');

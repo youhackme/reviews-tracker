@@ -21,6 +21,7 @@ class Review extends Model
         'score',
         'reviewed_at',
         'votes',
+        'country',
     ];
 
 
