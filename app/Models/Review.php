@@ -11,8 +11,8 @@ class Review extends Model
 {
     protected $fillable = [
         'id',
-        'applications_id',
-        'reviews_id',
+        'application_id',
+        'review_id',
         'version',
         'url',
         'author',
@@ -29,4 +29,5 @@ class Review extends Model
     {
         $this->attributes['reviewed_at'] = Carbon::parse($value)->setTimezone('UTC');
     }
+
 }

@@ -29,19 +29,19 @@ class SaveStoreData
         $reviews = $store->reviews();
 
         try {
-            $application = Application::where('applications_id', $this->config['id'])->firstOrFail();
+            $application = Application::where('application_id', $this->config['id'])->firstOrFail();
 
             if ($reviews) {
                 $reviews->each(function ($review) use ($application) {
 
                     Review::firstOrCreate(
                         [
-                            'applications_id' => $application->id,
-                            'reviews_id'      => $review['id'],
+                            'application_id' => $application->id,
+                            'review_id'      => $review['id'],
                         ],
                         [
-                            'applications_id' => $application->id,
-                            'reviews_id'      => $review['id'],
+                            'application_id' => $application->id,
+                            'review_id'      => $review['id'],
                             'version'         => $review['version'],
                             'url'             => $review['url'],
                             'author'          => $review['author'],
@@ -75,9 +75,9 @@ class SaveStoreData
         if ($app) {
 
             Application::firstOrCreate(
-                ['applications_id' => $app['id']],
+                ['application_id' => $app['id']],
                 [
-                    'applications_id' => $app['id'],
+                    'application_id' => $app['id'],
                     'name'            => $app['name'],
                     'screenshots'     => $app['screenshots'],
                     'icon'            => $app['icon'],
