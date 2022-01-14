@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Models\Notification;
 use App\Models\Review;
 use App\Models\Application;
+use App\Jobs\ProcessNotification;
 
 class SendNotifications extends Command
 {
@@ -59,7 +60,7 @@ class SendNotifications extends Command
                         ->get();
 
                     foreach ($reviews as $review) {
-                        dd($review);
+                        ProcessNotification::dispatchSync($review);
                         $this->info($review->reviewed_at . ':' . $review->description);
                     }
                 }
