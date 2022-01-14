@@ -51,9 +51,16 @@ class SendNotifications extends Command
         Subscription::active()->chunk(200, function ($subscription) {
             Subscription::active()->chunk(200, function ($subscription) {
                 try {
-                    $reviews = Application::find($subscription->first()->application_id)->reviews;
+                    $reviews = Application::find($subscription->first()->application_id)
+                        ->reviews()
+                        ->select('reviews.id as id', 'description', 'reviewed_at')
+                        ->lastHours(48)
+                        ->hasNotBeenSentBefore()
+                        ->get();
+
                     foreach ($reviews as $review) {
-                        $this->info($review->description);
+                        dd($review);
+                        $this->info($review->reviewed_at . ':' . $review->description);
                     }
                 }
                 catch (\Exception $exception) {

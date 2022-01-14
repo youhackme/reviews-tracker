@@ -35,4 +35,14 @@ class Review extends Model
         return $this->belongsTo(Application::class);
     }
 
+    public function scopeLastHours($query, $hours)
+    {
+        return $query->whereRaw("`reviewed_at` >= DATE_ADD(NOW(), INTERVAL -$hours HOUR)");
+    }
+
+    public function scopeHasNotBeenSentBefore($query)
+    {
+        return $query->leftJoin('notifications', 'reviews.id', '=', 'notifications.review_id');
+    }
+
 }
