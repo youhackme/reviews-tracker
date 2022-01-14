@@ -83,7 +83,7 @@ class SaveStoreData
                     'icon'            => $app['icon'],
                     'developer_url'   => $app['developer_url'],
                     'languages'       => $app['languages'],
-                    'reviews'         => $app['reviews'],
+                    'reviews_count'         => $app['reviews'],
                     'score'           => $app['score'],
                     'url'             => $app['url'],
                     'released_at'     => $app['released_at'],

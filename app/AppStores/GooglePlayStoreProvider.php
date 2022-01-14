@@ -145,7 +145,7 @@ class GooglePlayStoreProvider implements StoreInterface
                         'score'                => $result['ds:6'][0][6][0][1],
                         'scoreText'            => $result['ds:6'][0][6][0][0],
                         'ratings'              => $result['ds:6'][0][6][2][1],
-                        'reviews'              => $result['ds:6'][0][6][3][1],
+                        'reviews_count'        => $result['ds:6'][0][6][3][1],
                         'histogram'            => $this->buildHistogram($result['ds:6'][0][6][1]),
                         'price'                => $result ['ds:3'][0][2][0][0][0][1][0][0],
                         'free'                 => ($result ['ds:3'][0][2][0][0][0][1][0][0]) === 0,

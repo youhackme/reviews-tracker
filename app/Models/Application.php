@@ -18,7 +18,7 @@ class Application extends Model
         'icon',
         'developer_url',
         'languages',
-        'reviews',
+        'reviews_count',
         'score',
         'url',
         'released_at',

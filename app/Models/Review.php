@@ -30,4 +30,9 @@ class Review extends Model
         $this->attributes['reviewed_at'] = Carbon::parse($value)->setTimezone('UTC');
     }
 
+    public function application()
+    {
+        return $this->belongsTo(Application::class);
+    }
+
 }
