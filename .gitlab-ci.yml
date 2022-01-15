@@ -1,0 +1,86 @@
+image: php:8.0-zts-bullseye
+
+services:
+  - name: mysql:5.7
+    alias: mysql
+
+variables:
+  MYSQL_DATABASE: fashion_analytics_testing
+  MYSQL_ROOT_PASSWORD: secret
+  DB_DATABASE: fashion_analytics_testing
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_CONNECTION: mysql
+  DB_USERNAME: root
+  DB_PASSWORD: secret
+
+  APP_URL: https://toggle.me
+
+before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  - apt-get install -qq git curl libmcrypt-dev libjpeg-dev libpng-dev libfreetype6-dev libbz2-dev libxml2-dev unzip rsync
+  - cp .env.example .env
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == 'master'
+      variables:
+        REACT_APP_API_BASENAME: https://toggle.me
+        APP_URL: https://toggle.me
+    - when: always
+
+composer:
+  stage: build
+  script:
+    - php -v
+    - curl -sS https://getcomposer.org/installer | php
+    - php composer.phar install
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 1 days
+    when: always
+  cache:
+    paths:
+      - vendor/
+  only:
+    - develop
+    - master
+
+npm:
+  stage: build
+  image: node:14.16-stretch-slim
+  script:
+    - echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - echo $REACT_APP_API_BASENAME
+    - echo $APP_URL
+    - yarn -v
+    - yarn install
+    - yarn build
+  artifacts:
+    paths:
+      - node_modules/
+      - build/
+    expire_in: 1 days
+    when: always
+  cache:
+    paths:
+      - node_modules/
+      - build/
+
+production:
+  stage: deploy
+  script:
+    - docker-php-ext-install pdo_mysql mysqli
+    - rsync --version
+    - uname -a
+    - php artisan key:generate
+    - php artisan migrate
+    - rsync -rave  ssh --exclude-from '.rsyncignore' ./ toggle@163.172.39.215:/var/www/html --delete
+    - ssh toggle@163.172.39.215 "cd /var/www/html && php artisan migrate --force"
+  only:
+    - develop
