@@ -60,17 +60,17 @@ npm:
     - echo $APP_URL
     - yarn -v
     - yarn install
-    - yarn build
+    #- yarn build
   artifacts:
     paths:
       - node_modules/
-      - build/
+      #- build/
     expire_in: 1 days
     when: always
   cache:
     paths:
       - node_modules/
-      - build/
+      #- build/
 
 production:
   stage: deploy
