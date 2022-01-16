@@ -1,5 +1,5 @@
 .git
-storage
+storage/public
 .rsyncignore
 .gitignore
 .env.example
@@ -18,3 +18,5 @@ Dockerfile
 .gitlab-ci.yml
 public/videos
 node_modules
+public/hot
+public/storage
